@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import User, Locataire, Proprietaire
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
+from datetime import timedelta
 from .services.email import send_verification_email
 import uuid
 #on va créer un serializer pour l'inscription des utilisateurs
@@ -25,6 +26,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
         #on définit le mot de passe avec la méthode set_password pour le hasher
         user.set_password(password)
         user.role=role
+        user.token_expires_at=timezone.now()+timedelta(hours=24)
         user.verification_token=uuid.uuid4()
         #on sauvegarde l'utilisateur
         user.save()

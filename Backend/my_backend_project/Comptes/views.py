@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import InscriptionSerializer,ConnectionSerializer
 from .models import User
+from django.utils import timezone
+from datetime import timedelta
 #on va créer une vue pour l'inscription des utilisateurs
 class SignupView(APIView):
     def get(self,request):
@@ -38,11 +40,12 @@ class LoginView(APIView):
 #on va créer une vue pour la vérification de l'email des utilisateurs
 class VerifyEmailView(APIView):
     def get(self,request,token):
-        if not token:
-            return Response({"error":"Token is required."},status=status.HTTP_400_BAD_REQUEST)
         try:
             user=User.objects.get(verification_token=token)
+            if not token or timezone.now()>user.token_expires_at   :
+                return Response({"error":"Token is invalid or expired."},status=status.HTTP_400_BAD_REQUEST)
             user.is_verified=True
+            user.token_expires_at=None
             user.verification_token=None
             user.save()
             return Response({"message":"Email verified successfully."},status=status.HTTP_200_OK)

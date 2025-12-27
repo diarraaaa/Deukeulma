@@ -1,6 +1,8 @@
 import django 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.utils import timezone
+from datetime import timedelta
 
 # Create your models here.
 #On crée un modèle personnalisé pour les utilisateurs en héritant du modèle AbstractUser de Django
@@ -14,6 +16,8 @@ class User(AbstractUser):
     email=models.EmailField(unique=True)
     is_verified=models.BooleanField(default=False)
     verification_token=models.CharField(max_length=100,null=True,blank=True)
+    #on met une limite d'expiration pour le token de vérification
+    token_expires_at=models.DateTimeField(default=timezone.now()+timedelta(hours=24))
     groups = models.ManyToManyField(
         Group,
         related_name='custom_user_set',
