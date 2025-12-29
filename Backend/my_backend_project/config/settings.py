@@ -25,12 +25,55 @@ SECRET_KEY = "django-insecure-5-y8^!74$d5al1e8b10nikx9%1ra*mrl24g*^+ddz($1vpp3*3
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'glowing-fishstick-wwrrpx5x6v5f96rq-8000.app.github.dev',
+    'glowing-fishstick-wwrrpx5x6v5f96rq-8000.preview.app.github.dev',
+    'glowing-fishstick-wwrrpx5x6v5f96rq.github.dev',
+]
 
-ALLOWED_HOSTS = []
-
+# CSRF_TRUSTED_ORIGINS - retirez le slash final
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:8000',
+    'https://glowing-fishstick-wwrrpx5x6v5f96rq.github.dev',
+    'https://glowing-fishstick-wwrrpx5x6v5f96rq-8000.app.github.dev',  # Pas de slash à la fin
+]
 
 # Application definition
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'Comptes': {  # Votre app
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -51,10 +94,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://localhost:8000",
-    "https://glowing-fishstick-wwrrpx5x6v5f96rq.github.dev"
-]
+
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
@@ -152,7 +192,7 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = os.getenv("email_host")
-EMAIL_HOST_PASSWORD = os.getenv("email_password")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-DEFAULT_FROM_EMAIL = "Yakari Immo <{}>".format(EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL = "Yakari Immo <{EMAIL_HOST_USER}>".format(EMAIL_HOST_USER=EMAIL_HOST_USER)

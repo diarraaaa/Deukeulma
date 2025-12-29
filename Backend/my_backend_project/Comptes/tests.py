@@ -2,6 +2,9 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from .models import User
+from django.utils import timezone
+from datetime import timedelta
+
 
 class SignupTestCase(TestCase):
     def setUp(self):
@@ -92,4 +95,26 @@ class LoginTestCase(TestCase):
         response = self.client.post(self.login_url, data, format='json')
         #on vérifie la réponse
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+class VerifyEmailTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.verify_email_url = '/api/verify-email/'
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="strongpassword123",
+            role="locataire",
+            is_verified=False,
+            verification_token=None,
+            token_expires_at=timezone.now() + timezone.timedelta(hours=24)
+        )
+    def test_verify_email_success(self):
+        email="test@example.com"
+        response=self.client.post('/api/resend-verification-email/',{"email":email},format='json')
+        #on récupère l'utilisateur mis à jour
+        user=User.objects.get(email=email)
+        token=user.verification_token
+        self.assertEqual(response.status_code,status.HTTP_200_OK)
+
         

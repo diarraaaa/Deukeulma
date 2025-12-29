@@ -5,8 +5,10 @@ from rest_framework import status
 from .serializers import InscriptionSerializer,ConnectionSerializer
 from .models import User
 from django.utils import timezone
+from datetime import timedelta
 from django.core.mail import send_mail
 from django.conf import settings
+import uuid
 #on va créer une vue pour l'inscription des utilisateurs
 class SignupView(APIView):
     def get(self,request):
@@ -36,7 +38,30 @@ class LoginView(APIView):
             return Response(serializer_data,status=status.HTTP_200_OK)
         
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    
+#on crée une vue pour renvoyer le mail de vérification
+class ResendVerificationEmailView(APIView):
+    def post(self,request):
+        email=request.data.get('email')
+        try:
+            user=User.objects.get(email=email)
+        except(User.DoesNotExist):
+            return Response({"error":"User with this email does not exist."},status=status.HTTP_400_BAD_REQUEST)
+        if user.is_verified:
+            return Response({"message":"This email is already verified."},status=status.HTTP_200_OK)
+        token=uuid.uuid4()
+        user.verification_token=token
+        user.token_expires_at=timezone.now()+timezone.timedelta(hours=24)
+        user.save()
+        verification_link = f"https://glowing-fishstick-wwrrpx5x6v5f96rq-8000.app.github.dev/api/verify-email/{user.verification_token}/"
+        send_mail(
+            subject="Verification de votre email sur Yakari Immo",
+            message=f"Veuillez vérifier votre email en cliquant sur le lien suivant : {verification_link}",
+            html_message=f"<p>Bonjour {user.first_name} {user.last_name}, Veuillez vérifier votre email en cliquant sur le lien suivant : <a href='{verification_link}'>Vérifier l'email</a></p>",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        return Response({"message":"Verification email resent."},status=status.HTTP_200_OK)
 #on va créer une vue pour la vérification de l'email des utilisateurs
 class VerifyEmailView(APIView):
     def get(self,request,token):
